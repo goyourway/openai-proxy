@@ -11,7 +11,11 @@ const pickHeaders = (headers: Headers, keys: (string | RegExp)[]): Headers => {
   return picked;
 };
 
-const modifySetCookieDomain = (setCookieHeader, oldDomain, newDomain) => {
+const modifySetCookieDomain = (
+  setCookieHeader: string,
+  oldDomain: string,
+  newDomain: string
+): string => {
   return setCookieHeader.replace(
     new RegExp(`Domain=${oldDomain}`, 'i'),
     `Domain=${newDomain}`
