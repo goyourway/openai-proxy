@@ -61,12 +61,12 @@ if (setCookieHeaders) {
 
 
 
-  const resHeaders = {
-    ...CORS_HEADERS,
-    ...Object.fromEntries(
-      pickHeaders(res.headers, ["content-type", /^x-ratelimit-/, /^openai-/])
-    ),
-  };
+const resHeaders = new Headers({
+  ...CORS_HEADERS,
+  ...Object.fromEntries(
+    pickHeaders(res.headers, ["content-type", /^x-ratelimit-/, /^openai-/])
+  ),
+});
 
 // If there are modified Set-Cookie headers, add them to the response headers
 newSetCookieHeaders.forEach(header => {
