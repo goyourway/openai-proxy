@@ -11,6 +11,13 @@ const pickHeaders = (headers: Headers, keys: (string | RegExp)[]): Headers => {
   return picked;
 };
 
+const modifySetCookieDomain = (setCookieHeader, oldDomain, newDomain) => {
+  return setCookieHeader.replace(
+    new RegExp(`Domain=${oldDomain}`, 'i'),
+    `Domain=${newDomain}`
+  );
+};
+
 const CORS_HEADERS: Record<string, string> = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
@@ -34,12 +41,26 @@ export default async function handleRequest(req: Request & { nextUrl?: URL }) {
     headers,
   });
 
+  // 修改响应头中的Set-Cookie
+const modifiedCookies = res.headers.get('Set-Cookie');
+let newSetCookieHeader;
+if (modifiedCookies) {
+  newSetCookieHeader = modifySetCookieDomain(modifiedCookies, 'web.chatcatapi.xyz', 'a.example.com');
+}
+
+
+
   const resHeaders = {
     ...CORS_HEADERS,
     ...Object.fromEntries(
       pickHeaders(res.headers, ["content-type", /^x-ratelimit-/, /^openai-/])
     ),
   };
+
+    // 如果有修改后的Set-Cookie头，则添加到响应头中
+if (newSetCookieHeader) {
+  resHeaders['Set-Cookie'] = newSetCookieHeader;
+}
 
   return new Response(res.body, {
     headers: resHeaders,
