@@ -11,14 +11,17 @@ const pickHeaders = (headers: Headers, keys: (string | RegExp)[]): Headers => {
   return picked;
 };
 
-const modifySetCookieDomain = (
-  setCookieHeader: string,
+const modifySetCookieHeaders = (
+  setCookieHeaders: string[] | null,
   oldDomain: string,
   newDomain: string
-): string => {
-  return setCookieHeader.replace(
-    new RegExp(`Domain=${oldDomain}`, 'i'),
-    `Domain=${newDomain}`
+): string[] => {
+  if (!setCookieHeaders) return [];
+  return setCookieHeaders.map(header =>
+    header.replace(
+      new RegExp(`Domain=${oldDomain}`, 'i'),
+      `Domain=${newDomain}`
+    )
   );
 };
 
@@ -46,10 +49,14 @@ export default async function handleRequest(req: Request & { nextUrl?: URL }) {
   });
 
   // 修改响应头中的Set-Cookie
-const modifiedCookies = res.headers.get('Set-Cookie');
-let newSetCookieHeader;
-if (modifiedCookies) {
-  newSetCookieHeader = modifySetCookieDomain(modifiedCookies, 'web.chatcatapi.xyz', 'dalle.chatcatapi.xyz');
+const setCookieHeaders = res.headers.get('Set-Cookie');
+let newSetCookieHeaders;
+if (setCookieHeaders) {
+  newSetCookieHeaders = modifySetCookieHeaders(
+    setCookieHeaders.split(/,\s*(?=[^;]+=[^;]+;)/), // 正确地分割多个Set-Cookie头
+    'web.chatcatapi.xyz',
+    'a.example.com'
+  );
 }
 
 
@@ -61,11 +68,12 @@ if (modifiedCookies) {
     ),
   };
 
-    // 如果有修改后的Set-Cookie头，则添加到响应头中
-if (newSetCookieHeader) {
-  resHeaders['Set-Cookie'] = newSetCookieHeader;
+// 如果有修改后的Set-Cookie头，则添加到响应头中
+if (newSetCookieHeaders) {
+  newSetCookieHeaders.forEach(header => {
+    resHeaders.append('Set-Cookie', header);
+  });
 }
-
   return new Response(res.body, {
     headers: resHeaders,
     status: res.status
