@@ -48,14 +48,14 @@ export default async function handleRequest(req: Request & { nextUrl?: URL }) {
     headers,
   });
 
-  // 修改响应头中的Set-Cookie
+// Get all Set-Cookie headers and modify their domains
 const setCookieHeaders = res.headers.get('Set-Cookie');
-let newSetCookieHeaders;
+let newSetCookieHeaders: string[] = [];
 if (setCookieHeaders) {
   newSetCookieHeaders = modifySetCookieHeaders(
-    setCookieHeaders.split(/,\s*(?=[^;]+=[^;]+;)/), // 正确地分割多个Set-Cookie头
+    setCookieHeaders.split(/,\s*(?=[^;]+=[^;]+;)/), // Correctly split multiple Set-Cookie headers
     'web.chatcatapi.xyz',
-    'a.example.com'
+    'dalle.chatcatapi.xyz'
   );
 }
 
@@ -68,12 +68,11 @@ if (setCookieHeaders) {
     ),
   };
 
-// 如果有修改后的Set-Cookie头，则添加到响应头中
-if (newSetCookieHeaders) {
-  newSetCookieHeaders.forEach(header => {
-    resHeaders.append('Set-Cookie', header);
-  });
-}
+// If there are modified Set-Cookie headers, add them to the response headers
+newSetCookieHeaders.forEach(header => {
+  resHeaders.append('Set-Cookie', header);
+});
+  
   return new Response(res.body, {
     headers: resHeaders,
     status: res.status
