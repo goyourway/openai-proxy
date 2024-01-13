@@ -45,7 +45,7 @@ export default async function handleRequest(req: Request & { nextUrl?: URL }) {
 const modifiedCookies = res.headers.get('Set-Cookie');
 let newSetCookieHeader;
 if (modifiedCookies) {
-  newSetCookieHeader = modifySetCookieDomain(modifiedCookies, 'web.chatcatapi.xyz', 'a.example.com');
+  newSetCookieHeader = modifySetCookieDomain(modifiedCookies, 'web.chatcatapi.xyz', 'dalle.chatcatapi.xyz');
 }
 
 
